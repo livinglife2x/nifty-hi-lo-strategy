@@ -1,0 +1,85 @@
+from fyers_apiv3 import fyersModel
+from datetime import datetime, timedelta
+
+def initialize_fyers(client_id, access_token):
+    """Initialize Fyers API client"""
+    return fyersModel.FyersModel(
+        client_id=client_id, 
+        token=access_token, 
+        is_async=False, 
+        log_path=""
+    )
+
+def get_previous_day_data(fyers, symbol):
+    """Get previous day OHLC data and today's open"""
+    try:
+        today = datetime.now()
+        range_from = (today - timedelta(days=7)).strftime("%Y-%m-%d")
+        range_to = today.strftime("%Y-%m-%d")
+        
+        data = {
+            "symbol": symbol,
+            "resolution": "D",
+            "date_format": "1",
+            "range_from": range_from,
+            "range_to": range_to,
+            "cont_flag": "1"
+        }
+        
+        response = fyers.history(data=data)
+        
+        if response['s'] == 'ok' and len(response['candles']) >= 2:
+            prev_candle = response['candles'][-2]
+            today_candle = response['candles'][-1]
+            
+            return {
+                'prev_open': prev_candle[1],
+                'prev_high': prev_candle[2],
+                'prev_low': prev_candle[3],
+                'prev_close': prev_candle[4],
+                'today_open': today_candle[1]
+            }
+        else:
+            print(f"Error getting historical data: {response}")
+            return None
+    except Exception as e:
+        print(f"Exception in get_previous_day_data: {e}")
+        return None
+
+def get_ltp(fyers, symbol):
+    """Get Last Traded Price"""
+    try:
+        data = {"symbols": symbol}
+        response = fyers.quotes(data=data)
+        
+        if response['s'] == 'ok' and len(response['d']) > 0:
+            return response['d'][0]['v']['lp']
+        else:
+            print(f"Error getting LTP: {response}")
+            return None
+    except Exception as e:
+        print(f"Exception in get_ltp: {e}")
+        return None
+
+def place_order(fyers, symbol, side, quantity):
+    """Place market order - side should be 'BUY' or 'SELL'"""
+    try:
+        data = {
+            "symbol": symbol,
+            "qty": quantity,
+            "type": 2,  # Market order
+            "side": 1 if side == "BUY" else -1,
+            "productType": "INTRADAY",
+            "limitPrice": 0,
+            "stopPrice": 0,
+            "validity": "DAY",
+            "disclosedQty": 0,
+            "offlineOrder": False
+        }
+        
+        response = fyers.place_order(data=data)
+        print(f"Order Response: {response}")
+        return response
+    except Exception as e:
+        print(f"Exception in place_order: {e}")
+        return None
