@@ -11,7 +11,7 @@ def initialize_fyers(client_id, access_token):
     )
 
 def get_previous_day_data(fyers, symbol):
-    """Get previous day OHLC data and today's open"""
+    """Get previous day OHLC data"""
     try:
         today = datetime.now()
         range_from = (today - timedelta(days=7)).strftime("%Y-%m-%d")
@@ -28,22 +28,36 @@ def get_previous_day_data(fyers, symbol):
         
         response = fyers.history(data=data)
         
-        if response['s'] == 'ok' and len(response['candles']) >= 2:
-            prev_candle = response['candles'][-2]
-            today_candle = response['candles'][-1]
+        if response['s'] == 'ok' and len(response['candles']) >= 1:
+            prev_candle = response['candles'][-1]  # Last complete day
             
             return {
                 'prev_open': prev_candle[1],
                 'prev_high': prev_candle[2],
                 'prev_low': prev_candle[3],
-                'prev_close': prev_candle[4],
-                'today_open': today_candle[1]
+                'prev_close': prev_candle[4]
             }
         else:
             print(f"Error getting historical data: {response}")
             return None
     except Exception as e:
         print(f"Exception in get_previous_day_data: {e}")
+        return None
+
+def get_today_open(fyers, symbol):
+    """Get today's opening price from live quotes"""
+    try:
+        data = {"symbols": symbol}
+        response = fyers.quotes(data=data)
+        
+        if response['s'] == 'ok' and len(response['d']) > 0:
+            today_open = response['d'][0]['v']['open_price']
+            return today_open
+        else:
+            print(f"Error getting today's open: {response}")
+            return None
+    except Exception as e:
+        print(f"Exception in get_today_open: {e}")
         return None
 
 def get_ltp(fyers, symbol):

@@ -1,7 +1,8 @@
 import time
 from datetime import datetime, time as dt_time
+import pytz
 from config import load_config
-from fyers_api import initialize_fyers, get_previous_day_data, get_ltp
+from fyers_api import initialize_fyers, get_previous_day_data, get_today_open, get_ltp
 from strategy import (
     check_trade_day_conditions, 
     check_entry_signal, 
@@ -10,23 +11,36 @@ from strategy import (
     exit_trade
 )
 
+# Indian timezone
+IST = pytz.timezone('Asia/Kolkata')
+
+def get_ist_time():
+    """Get current time in IST"""
+    return datetime.now(IST)
+
 def wait_until_time(target_time):
-    """Wait until a specific time"""
+    """Wait until a specific time in IST"""
     while True:
-        now = datetime.now().time()
+        now = get_ist_time().time()
         if now >= target_time:
             break
         time.sleep(0.1)
 
 def is_market_closed():
-    """Check if market is closed (after 3:15 PM)"""
-    now = datetime.now().time()
+    """Check if market is closed (after 3:15 PM IST)"""
+    now = get_ist_time().time()
     return now >= dt_time(15, 15, 0)
 
 def main():
     print("="*60)
     print("Fyers Live Trading Strategy")
     print("="*60)
+    
+    # Show current time in both local and IST
+    local_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')
+    ist_time = get_ist_time().strftime('%Y-%m-%d %H:%M:%S %Z')
+    print(f"\nLocal Time: {local_time}")
+    print(f"IST Time: {ist_time}")
     
     # Load configuration
     config = load_config()
@@ -49,14 +63,14 @@ def main():
     print(f"\nTrading Symbol: {symbol}")
     print(f"Capital: ₹{capital}")
     print(f"Risk Per Trade: {risk_pct}%")
-    print(f"\nWaiting for 9:15 AM...\n")
+    print(f"\nWaiting for 9:15 AM IST...\n")
     
-    # Wait until 9:15 AM
+    # Wait until 9:15 AM IST
     wait_until_time(dt_time(9, 15, 0))
-    print("✓ Market opened at 9:15 AM")
+    print(f"✓ Market opened at 9:15 AM IST (Local: {datetime.now().strftime('%H:%M:%S')})")
     
-    # Wait 1 minute until 9:16:01
-    print("Waiting for 9:16:01...")
+    # Wait 1 minute until 9:16:01 IST
+    print("Waiting for 9:16:01 IST...")
     wait_until_time(dt_time(9, 16, 1))
     
     # Get previous day data
@@ -65,6 +79,16 @@ def main():
     if not prev_data:
         print("Failed to get previous day data. Exiting.")
         return
+    
+    # Get today's opening price from live quotes
+    today_open = get_today_open(fyers, symbol)
+    
+    if not today_open:
+        print("Failed to get today's opening price. Exiting.")
+        return
+    
+    # Add today's open to prev_data
+    prev_data['today_open'] = today_open
     
     # Check if today is a trade day
     is_trade_day = check_trade_day_conditions(prev_data)
@@ -92,15 +116,13 @@ def main():
                 time.sleep(1)
                 continue
             
-            current_time = datetime.now().strftime('%H:%M:%S')
+            current_time = get_ist_time().strftime('%H:%M:%S')
             
             # If no trade taken yet, check for entry
             if not trade_taken:
                 signal = check_entry_signal(ltp, prev_high, prev_low)
                 
                 if signal:
-                    #with open('trade_log.txt', 'a') as f:
-                    #    f.write(f'{entry_time},{entry_price},{entry_reason},{exit_time},{exit_price},{exit_reason},{profit},{profit_perc},{position} \n')
                     trade_details = enter_trade(fyers, symbol, capital, risk_pct, signal, ltp, prev_high, prev_low)
                     
                     if trade_details:

@@ -1,5 +1,13 @@
 from datetime import datetime
 from fyers_api import place_order
+import pytz
+
+# Indian timezone
+IST = pytz.timezone('Asia/Kolkata')
+
+def get_ist_time():
+    """Get current time in IST"""
+    return datetime.now(IST) 
 
 def calculate_quantity(capital, risk_pct, entry_price, stop_loss_price):
     """Calculate quantity based on capital and risk percentage"""
@@ -130,7 +138,7 @@ def enter_trade(fyers, symbol, capital, risk_pct, trade_type, ltp, prev_high, pr
     #response = place_order(fyers, symbol, side, quantity)
     
     #if response and response.get('s') == 'ok':
-    entry_datetime = datetime.now()
+    entry_datetime = get_ist_time()
     entry_price = ltp
     
     trade_details = {
@@ -221,7 +229,7 @@ def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit"):
     
     side = "SELL" if trade_details['type'] == "LONG" else "BUY"
     quantity = trade_details['quantity']
-    exit_datetime = datetime.now()
+    exit_datetime = get_ist_time()
     
     print(f"\n{'='*60}")
     print(f"🔔 EXIT SIGNAL: {reason}")
@@ -276,7 +284,7 @@ def log_trade(trade_data):
     try:
         with open('trade_log.txt', 'a') as f:
             f.write(f"\n{'='*60}\n")
-            f.write(f"Trade Log Entry - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Trade Log Entry - {get_ist_time().strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"{'='*60}\n")
             for key, value in trade_data.items():
                 f.write(f"{key}: {value}\n")
