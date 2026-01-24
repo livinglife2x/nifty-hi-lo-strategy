@@ -76,6 +76,7 @@ def check_entry_signal(ltp, prev_high, prev_low):
 
 def enter_trade(fyers, symbol, capital, risk_pct, trade_type, ltp, prev_high, prev_low):
     """Enter a trade and return trade details"""
+    """
     stop_loss = prev_low if trade_type == 'LONG' else prev_high
     
     # Calculate quantity dynamically
@@ -113,6 +114,44 @@ def enter_trade(fyers, symbol, capital, risk_pct, trade_type, ltp, prev_high, pr
     else:
         print(f"❌ Order placement failed")
         return None
+    """
+
+    stop_loss = prev_low if trade_type == 'LONG' else prev_high
+    
+    # Calculate quantity dynamically
+    quantity = 1
+    
+    side = "BUY" if trade_type == "LONG" else "SELL"
+    
+    print(f"\n{'='*60}")
+    print(f"🔔 ENTRY SIGNAL: {trade_type}")
+    print(f"{'='*60}")
+    
+    #response = place_order(fyers, symbol, side, quantity)
+    
+    #if response and response.get('s') == 'ok':
+    entry_datetime = datetime.now()
+    entry_price = ltp
+    
+    trade_details = {
+        'type': trade_type,
+        'entry_price': entry_price,
+        'entry_datetime': entry_datetime,
+        'stop_loss': stop_loss,
+        'quantity': quantity
+    }
+    
+    print(f"✓ Trade Executed Successfully")
+    print(f"  Type: {trade_type}")
+    print(f"  Quantity: {quantity}")
+    print(f"  Entry Price: ₹{entry_price}")
+    print(f"  Entry Time: {entry_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"  Stop Loss: ₹{stop_loss}")
+    print(f"{'='*60}\n")
+        
+    return trade_details
+    
+
 
 def check_exit_signal(ltp, trade_type, prev_high, prev_low):
     """Check if stop loss is hit"""
@@ -127,7 +166,9 @@ def check_exit_signal(ltp, trade_type, prev_high, prev_low):
     return False
 
 def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit"):
+  
     """Exit the trade and log details"""
+    """
     # Safety check - ensure trade_details exists
     if trade_details is None:
         print("⚠️  No active position to exit")
@@ -173,6 +214,49 @@ def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit"):
     else:
         print(f"❌ Exit order failed")
         return False  # Exit failed
+    """
+    if trade_details is None:
+        print("⚠️  No active position to exit")
+        return False
+    
+    side = "SELL" if trade_details['type'] == "LONG" else "BUY"
+    quantity = trade_details['quantity']
+    exit_datetime = datetime.now()
+    
+    print(f"\n{'='*60}")
+    print(f"🔔 EXIT SIGNAL: {reason}")
+    print(f"{'='*60}")
+    
+    #response = place_order(fyers, symbol, side, quantity)
+    
+    #if response and response.get('s') == 'ok':
+    exit_price = ltp
+    
+    # Calculate profit
+    if trade_details['type'] == 'LONG':
+        profit = (exit_price - trade_details['entry_price']) * quantity
+    else:
+        profit = (trade_details['entry_price'] - exit_price) * quantity
+    
+    profit_pct = (profit / (trade_details['entry_price'] * quantity)) * 100
+    
+    # Create log entry
+    log_entry = {
+        'entry_datetime': trade_details['entry_datetime'].strftime('%Y-%m-%d %H:%M:%S'),
+        'entry_price': trade_details['entry_price'],
+        'exit_datetime': exit_datetime.strftime('%Y-%m-%d %H:%M:%S'),
+        'exit_price': exit_price,
+        'quantity': quantity,
+        'profit_absolute': round(profit, 2),
+        'profit_percentage': round(profit_pct, 2),
+        'trade_type': trade_details['type'],
+        'exit_reason': reason
+    }
+    
+    log_trade(log_entry)
+    
+    return True  # Successfully exited
+  
 
 def log_trade(trade_data):
     """Log trade details to console and file"""

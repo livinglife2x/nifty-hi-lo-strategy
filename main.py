@@ -99,6 +99,8 @@ def main():
                 signal = check_entry_signal(ltp, prev_high, prev_low)
                 
                 if signal:
+                    #with open('trade_log.txt', 'a') as f:
+                    #    f.write(f'{entry_time},{entry_price},{entry_reason},{exit_time},{exit_price},{exit_reason},{profit},{profit_perc},{position} \n')
                     trade_details = enter_trade(fyers, symbol, capital, risk_pct, signal, ltp, prev_high, prev_low)
                     
                     if trade_details:
