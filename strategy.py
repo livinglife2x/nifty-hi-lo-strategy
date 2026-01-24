@@ -1,4 +1,30 @@
 from datetime import datetime
+from fyers_api import place_order
+
+def calculate_quantity(capital, risk_pct, entry_price, stop_loss_price):
+    """Calculate quantity based on capital and risk percentage"""
+    risk_amount = capital * (risk_pct / 100)
+    price_diff = abs(entry_price - stop_loss_price)
+    
+    if price_diff == 0:
+        return 1
+    
+    quantity = int(risk_amount / price_diff)
+    
+    # Minimum 1 quantity
+    if quantity < 1:
+        quantity = 1
+    
+    print(f"\nQuantity Calculation:")
+    print(f"  Capital: ₹{capital}")
+    print(f"  Risk %: {risk_pct}%")
+    print(f"  Risk Amount: ₹{risk_amount}")
+    print(f"  Entry Price: ₹{entry_price}")
+    print(f"  Stop Loss: ₹{stop_loss_price}")
+    print(f"  Price Difference: ₹{price_diff}")
+    print(f"  Calculated Quantity: {quantity}")
+    
+    return quantity
 
 def check_trade_day_conditions(prev_data):
     """Check if today qualifies as a trade day"""
@@ -48,8 +74,13 @@ def check_entry_signal(ltp, prev_high, prev_low):
     
     return None
 
-def enter_trade(fyers, symbol, quantity, trade_type, ltp, prev_high, prev_low):
+def enter_trade(fyers, symbol, capital, risk_pct, trade_type, ltp, prev_high, prev_low):
     """Enter a trade and return trade details"""
+    stop_loss = prev_low if trade_type == 'LONG' else prev_high
+    
+    # Calculate quantity dynamically
+    quantity = calculate_quantity(capital, risk_pct, ltp, stop_loss)
+    
     side = "BUY" if trade_type == "LONG" else "SELL"
     
     print(f"\n{'='*60}")
@@ -66,14 +97,16 @@ def enter_trade(fyers, symbol, quantity, trade_type, ltp, prev_high, prev_low):
             'type': trade_type,
             'entry_price': entry_price,
             'entry_datetime': entry_datetime,
-            'stop_loss': prev_low if trade_type == 'LONG' else prev_high
+            'stop_loss': stop_loss,
+            'quantity': quantity
         }
         
         print(f"✓ Trade Executed Successfully")
         print(f"  Type: {trade_type}")
+        print(f"  Quantity: {quantity}")
         print(f"  Entry Price: ₹{entry_price}")
         print(f"  Entry Time: {entry_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"  Stop Loss: ₹{trade_details['stop_loss']}")
+        print(f"  Stop Loss: ₹{stop_loss}")
         print(f"{'='*60}\n")
         
         return trade_details
@@ -93,9 +126,15 @@ def check_exit_signal(ltp, trade_type, prev_high, prev_low):
     
     return False
 
-def exit_trade(fyers, symbol, quantity, trade_details, ltp, reason="Stop Loss Hit"):
+def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit"):
     """Exit the trade and log details"""
+    # Safety check - ensure trade_details exists
+    if trade_details is None:
+        print("⚠️  No active position to exit")
+        return False
+    
     side = "SELL" if trade_details['type'] == "LONG" else "BUY"
+    quantity = trade_details['quantity']
     exit_datetime = datetime.now()
     
     print(f"\n{'='*60}")
@@ -121,6 +160,7 @@ def exit_trade(fyers, symbol, quantity, trade_details, ltp, reason="Stop Loss Hi
             'entry_price': trade_details['entry_price'],
             'exit_datetime': exit_datetime.strftime('%Y-%m-%d %H:%M:%S'),
             'exit_price': exit_price,
+            'quantity': quantity,
             'profit_absolute': round(profit, 2),
             'profit_percentage': round(profit_pct, 2),
             'trade_type': trade_details['type'],
@@ -129,10 +169,10 @@ def exit_trade(fyers, symbol, quantity, trade_details, ltp, reason="Stop Loss Hi
         
         log_trade(log_entry)
         
-        return True
+        return True  # Successfully exited
     else:
         print(f"❌ Exit order failed")
-        return False
+        return False  # Exit failed
 
 def log_trade(trade_data):
     """Log trade details to console and file"""
@@ -141,6 +181,7 @@ def log_trade(trade_data):
     print(f"  Entry Price: ₹{trade_data['entry_price']}")
     print(f"  Exit DateTime: {trade_data['exit_datetime']}")
     print(f"  Exit Price: ₹{trade_data['exit_price']}")
+    print(f"  Quantity: {trade_data['quantity']}")
     print(f"  Profit (Absolute): ₹{trade_data['profit_absolute']}")
     print(f"  Profit (Percentage): {trade_data['profit_percentage']}%")
     print(f"  Trade Type: {trade_data['trade_type']}")
@@ -159,154 +200,3 @@ def log_trade(trade_data):
         print("✓ Trade logged to trade_log.txt")
     except Exception as e:
         print(f"Error writing to log file: {e}")
-
-
-# =====================================================
-# main.py
-# =====================================================
-import time
-from datetime import datetime, time as dt_time
-from config import load_config
-from fyers_api import initialize_fyers, get_previous_day_data, get_ltp
-from strategy import (
-    check_trade_day_conditions, 
-    check_entry_signal, 
-    enter_trade,
-    check_exit_signal,
-    exit_trade
-)
-
-def wait_until_time(target_time):
-    """Wait until a specific time"""
-    while True:
-        now = datetime.now().time()
-        if now >= target_time:
-            break
-        time.sleep(0.1)
-
-def is_market_closed():
-    """Check if market is closed (after 3:15 PM)"""
-    now = datetime.now().time()
-    return now >= dt_time(15, 15, 0)
-
-def main():
-    print("="*60)
-    print("Fyers Live Trading Strategy")
-    print("="*60)
-    
-    # Load configuration
-    config = load_config()
-    
-    if not config:
-        print("Failed to load configuration. Please check config.json")
-        return
-    
-    if config['client_id'] == "YOUR_CLIENT_ID" or config['access_token'] == "YOUR_ACCESS_TOKEN":
-        print("\n⚠️  Please update config.json with your Fyers credentials!")
-        return
-    
-    # Initialize Fyers API
-    fyers = initialize_fyers(config['client_id'], config['access_token'])
-    
-    symbol = config['symbol']
-    quantity = config['quantity']
-    
-    print(f"\nTrading Symbol: {symbol}")
-    print(f"Quantity: {quantity}")
-    print(f"\nWaiting for 9:15 AM...\n")
-    
-    # Wait until 9:15 AM
-    wait_until_time(dt_time(9, 15, 0))
-    print("✓ Market opened at 9:15 AM")
-    
-    # Wait 1 minute until 9:16:01
-    print("Waiting for 9:16:01...")
-    wait_until_time(dt_time(9, 16, 1))
-    
-    # Get previous day data
-    prev_data = get_previous_day_data(fyers, symbol)
-    
-    if not prev_data:
-        print("Failed to get previous day data. Exiting.")
-        return
-    
-    # Check if today is a trade day
-    is_trade_day = check_trade_day_conditions(prev_data)
-    
-    if not is_trade_day:
-        print("Today is NOT a trade day. Exiting strategy.")
-        return
-    
-    # Trade day - start monitoring
-    print("Starting live monitoring every 1 second...")
-    
-    prev_high = prev_data['prev_high']
-    prev_low = prev_data['prev_low']
-    
-    trade_taken = False
-    trade_details = None
-    
-    while not is_market_closed():
-        try:
-            # Get current LTP
-            ltp = get_ltp(fyers, symbol)
-            
-            if ltp is None:
-                print("Failed to get LTP, retrying...")
-                time.sleep(1)
-                continue
-            
-            current_time = datetime.now().strftime('%H:%M:%S')
-            
-            # If no trade taken yet, check for entry
-            if not trade_taken:
-                signal = check_entry_signal(ltp, prev_high, prev_low)
-                
-                if signal:
-                    trade_details = enter_trade(fyers, symbol, quantity, signal, ltp, prev_high, prev_low)
-                    
-                    if trade_details:
-                        trade_taken = True
-                    else:
-                        print("Entry failed, continuing to monitor...")
-                else:
-                    print(f"[{current_time}] LTP: ₹{ltp} | Waiting for entry signal...")
-            
-            # If trade is active, check for exit
-            else:
-                # Check stop loss
-                if check_exit_signal(ltp, trade_details['type'], prev_high, prev_low):
-                    exit_trade(fyers, symbol, quantity, trade_details, ltp, "Stop Loss Hit")
-                    print("Trade completed. Exiting strategy.")
-                    return
-                else:
-                    print(f"[{current_time}] LTP: ₹{ltp} | Trade active, monitoring stop loss...")
-            
-            # Sleep for 1 second
-            time.sleep(1)
-            
-        except KeyboardInterrupt:
-            print("\n\nStrategy interrupted by user")
-            if trade_taken and trade_details:
-                print("Attempting to exit open position...")
-                ltp = get_ltp(fyers, symbol)
-                if ltp:
-                    exit_trade(fyers, symbol, quantity, trade_details, ltp, "Manual Exit")
-            return
-        except Exception as e:
-            print(f"Error in main loop: {e}")
-            time.sleep(1)
-    
-    # Market closed at 3:15 PM
-    if trade_taken and trade_details:
-        print("\n⏰ Market closing at 3:15 PM")
-        ltp = get_ltp(fyers, symbol)
-        if ltp:
-            exit_trade(fyers, symbol, quantity, trade_details, ltp, "Market Close - 3:15 PM")
-    
-    print("\n" + "="*60)
-    print("Strategy completed for the day")
-    print("="*60)
-
-if __name__ == "__main__":
-    main()
