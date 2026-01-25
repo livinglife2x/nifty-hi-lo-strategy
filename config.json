@@ -1,5 +1,7 @@
 {
     "symbol":"NSE:NIFTY50-INDEX",
     "client_id":"6T96N0BCAZ-100",
-    "access_token":""
+    "access_token":"",
+    "capital":"",
+    "risk_per_trade_pct":""
 }
