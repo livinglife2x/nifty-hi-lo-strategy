@@ -27,6 +27,8 @@ def get_previous_day_data(fyers, symbol):
         }
         
         response = fyers.history(data=data)
+        print("---historical data---")
+        print(response['candles'])
         
         if response['s'] == 'ok' and len(response['candles']) >= 1:
             prev_candle = response['candles'][-1]  # Last complete day
