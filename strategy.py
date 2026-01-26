@@ -58,14 +58,14 @@ def check_trade_day_conditions(prev_data):
     print(f"✓ Today's open is between prev high and low")
     
     # Condition 2: ((prev_open - prev_close) * 100) / prev_close < 0.5
-    prev_day_change_pct = abs(((prev_open - prev_close) * 100) / prev_close)
+    prev_day_change_pct = abs(((prev_open - prev_close) * 100) / prev_open)
     print(f"Previous day change %: {prev_day_change_pct:.2f}%")
     
-    if prev_day_change_pct >= 0.5:
-        print(f"❌ Previous day change {prev_day_change_pct:.2f}% >= 0.5%")
+    if prev_day_change_pct > 0.5:
+        print(f"❌ Previous day change {prev_day_change_pct:.2f}% > 0.5%")
         return False
     
-    print(f"✓ Previous day change {prev_day_change_pct:.2f}% < 0.5%")
+    print(f"✓ Previous day change {prev_day_change_pct:.2f}% <= 0.5%")
     print("✓✓ Today is a TRADE DAY!")
     print("="*60 + "\n")
     return True

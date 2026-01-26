@@ -1,0 +1,2 @@
+{"level":"DEBUG","location":"[get_call:144] fyersModel","message":{"Status Code":200,"API":"/history"},"timestamp":"2026-01-25 22:46:01,626-0500","service":"FyersAPIRequest"}
+{"level":"DEBUG","location":"[get_call:144] fyersModel","message":{"Status Code":200,"API":"/quotes"},"timestamp":"2026-01-25 22:46:02,135-0500","service":"FyersAPIRequest"}
