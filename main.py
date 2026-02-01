@@ -105,6 +105,8 @@ def main():
     
     trade_taken = False
     trade_details = None
+    trade_completed = False  # New flag to track if any trade was completed today
+    last_print_time = 0  # Track last print time to avoid spam
     
     while not is_market_closed():
         try:
@@ -118,6 +120,16 @@ def main():
             
             current_time = get_ist_time().strftime('%H:%M:%S')
             
+            # If a trade was already completed today, just monitor until market close
+            if trade_completed:
+                # Print only every 60 seconds
+                current_timestamp = time.time()
+                if current_timestamp - last_print_time >= 60:
+                    print(f"[{current_time}] Trade already completed today. Waiting for market close...")
+                    last_print_time = current_timestamp
+                time.sleep(1)
+                continue
+            
             # If no trade taken yet, check for entry
             if not trade_taken:
                 signal = check_entry_signal(ltp, prev_high, prev_low)
@@ -130,7 +142,14 @@ def main():
                     else:
                         print("Entry failed, continuing to monitor...")
                 else:
-                    print(f"[{current_time}] LTP: ₹{ltp} | Waiting for entry signal...")
+                    # Print only every 30 seconds to avoid spam
+                    """
+                    current_timestamp = time.time()
+                    if current_timestamp - last_print_time >= 30:
+                        print(f"[{current_time}] LTP: ₹{ltp} | Prev High: ₹{prev_high} | Prev Low: ₹{prev_low} | Waiting for breakout...")
+                        last_print_time = current_timestamp
+                    """
+                    pass
             
             # If trade is active, check for exit
             else:
@@ -140,6 +159,7 @@ def main():
                     if success:
                         trade_taken = False  # Mark position as closed
                         trade_details = None
+                        trade_completed = True  # Mark that a trade was completed - no more trades today
                         print("Trade completed. No more trades today. Monitoring until market close...")
                     else:
                         print("Exit failed, retrying...")
@@ -161,14 +181,14 @@ def main():
             print(f"Error in main loop: {e}")
             time.sleep(1)
     
-    # Market closed at 3:15 PM
+    # Market closed at 3:15 PM IST
     if trade_details is not None:  # Check if position still exists
-        print("\n⏰ Market closing at 3:15 PM - Open position detected")
+        print(f"\n⏰ Market closing at 3:15 PM IST (Local: {datetime.now().strftime('%H:%M:%S')}) - Open position detected")
         ltp = get_ltp(fyers, symbol)
         if ltp:
             exit_trade(fyers, symbol, trade_details, ltp, "Market Close - 3:15 PM")
     else:
-        print("\n⏰ Market closed at 3:15 PM - No open positions")
+        print(f"\n⏰ Market closed at 3:15 PM IST (Local: {datetime.now().strftime('%H:%M:%S')}) - No open positions")
     
     print("\n" + "="*60)
     print("Strategy completed for the day")

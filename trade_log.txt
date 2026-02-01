@@ -1,0 +1,28 @@
+
+============================================================
+Trade Log Entry - 2026-01-29 13:33:58
+============================================================
+entry_datetime: 2026-01-29 09:54:34
+entry_price: 25186.15
+exit_datetime: 2026-01-29 13:33:58
+exit_price: 25373.35
+quantity: 1
+profit_absolute: -187.2
+profit_percentage: -0.74
+trade_type: SHORT
+exit_reason: Stop Loss Hit
+============================================================
+
+============================================================
+Trade Log Entry - 2026-01-29 15:15:00
+============================================================
+entry_datetime: 2026-01-29 13:34:00
+entry_price: 25375
+exit_datetime: 2026-01-29 15:15:00
+exit_price: 25407.65
+quantity: 1
+profit_absolute: 32.65
+profit_percentage: 0.13
+trade_type: LONG
+exit_reason: Market Close - 3:15 PM
+============================================================
