@@ -143,7 +143,7 @@ def enter_trade(fyers, symbol, capital, risk_pct, trade_type, ltp, prev_high, pr
     entry_price = ltp
     expiries = get_option_chain_expiries()
     entry_option_price=0
-    entry_symbol=None
+    entry_option_symbol=None
     if expiries:
         selected_expiry = select_expiry(expiries)['expiry']
         option_chain = get_option_chain_expiry(selected_expiry)
@@ -254,7 +254,9 @@ def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit",option_
     
     #if response and response.get('s') == 'ok':
     exit_price = ltp
-    option_ltp = get_ltp(fyers,trade_details['entry_option_symbol'])
+    option_ltp=0
+    if trade_details['entry_option_symbol']:
+        option_ltp = get_ltp(fyers,trade_details['entry_option_symbol'])
     # Calculate profit
     if trade_details['type'] == 'LONG':
         profit = (exit_price - trade_details['entry_price']) * quantity
