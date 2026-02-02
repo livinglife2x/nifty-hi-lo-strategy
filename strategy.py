@@ -329,7 +329,7 @@ def select_expiry(expiry_data, current_date=None):
         Dictionary with selected expiry information
     """
     if current_date is None:
-        current_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        current_date = datetime.now(IST).replace(hour=0, minute=0, second=0, microsecond=0)
     
     # Convert expiry dates to datetime objects and filter future dates
     future_expiries = []
