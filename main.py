@@ -155,7 +155,8 @@ def main():
             else:
                 # Check stop loss
                 if check_exit_signal(ltp, trade_details['type'], prev_high, prev_low):
-                    success = exit_trade(fyers, symbol, trade_details, ltp, "Stop Loss Hit")
+                    option_ltp = get_ltp(fyers,trade_details['entry_option_symbol'])
+                    success = exit_trade(fyers, symbol, trade_details, ltp, "Stop Loss Hit",option_ltp)
                     if success:
                         trade_taken = False  # Mark position as closed
                         trade_details = None

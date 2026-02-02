@@ -99,3 +99,34 @@ def place_order(fyers, symbol, side, quantity):
     except Exception as e:
         print(f"Exception in place_order: {e}")
         return None
+    
+def get_option_chain_expiries():
+    try:
+        data = {
+        "symbol":"NSE:NIFTY50-INDEX",
+        "strikecount":2,
+        "timestamp": ""
+        }
+        response = fyers.optionchain(data=data)
+        return response['data']['expiryData']
+    except Exception as e:
+        print(f"Exception in return option chain expiries {e}")
+        return None
+    
+def get_option_chain_expiry(expiry):
+    try:
+        data = {
+        "symbol":"NSE:NIFTY50-INDEX",
+        "strikecount":2,
+        "timestamp": expiry
+        }
+        response = fyers.optionchain(data=data)
+        return response['data']['optionsChain']
+    except Exception as e:
+        print(f"Exception in return option chain for a given expiry {e}")
+        return None
+    
+
+
+
+

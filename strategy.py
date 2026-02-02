@@ -1,6 +1,7 @@
-from datetime import datetime
-from fyers_api import place_order
+from datetime import datetime,timedelta
+from fyers_api import *
 import pytz
+import pandas as pd
 
 # Indian timezone
 IST = pytz.timezone('Asia/Kolkata')
@@ -140,10 +141,24 @@ def enter_trade(fyers, symbol, capital, risk_pct, trade_type, ltp, prev_high, pr
     #if response and response.get('s') == 'ok':
     entry_datetime = get_ist_time()
     entry_price = ltp
-    
+    expiries = get_option_chain_expiries()
+    entry_option_price=0
+    entry_symbol=None
+    if expiries:
+        selected_expiry = select_expiry(expiries)['expiry']
+        option_chain = get_option_chain_expiry(selected_expiry)
+        strikes = get_itm_strike(ltp)
+        if trade_type == 'LONG':
+            strike = strikes['call_1_itm']
+        else:
+            strike = strikes['put_1_itm']
+        entry_option_symbol,entry_option_price = get_entry_symbol(strike,option_chain,trade_type)
+            
     trade_details = {
         'type': trade_type,
         'entry_price': entry_price,
+        'entry_option_price':entry_option_price,
+        'entry_option_symbol':entry_option_symbol,
         'entry_datetime': entry_datetime,
         'stop_loss': stop_loss,
         'quantity': quantity
@@ -173,7 +188,7 @@ def check_exit_signal(ltp, trade_type, prev_high, prev_low):
     
     return False
 
-def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit"):
+def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit",option_ltp=0):
   
     """Exit the trade and log details"""
     """
@@ -239,23 +254,28 @@ def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit"):
     
     #if response and response.get('s') == 'ok':
     exit_price = ltp
-    
+    option_ltp = get_ltp(fyers,trade_details['entry_option_symbol'])
     # Calculate profit
     if trade_details['type'] == 'LONG':
         profit = (exit_price - trade_details['entry_price']) * quantity
+        option_profit =option_ltp- trade_details['entry_option_price']
     else:
         profit = (trade_details['entry_price'] - exit_price) * quantity
-    
+        option_profit =trade_details['entry_option_price'] - option_ltp
     profit_pct = (profit / (trade_details['entry_price'] * quantity)) * 100
     
     # Create log entry
     log_entry = {
         'entry_datetime': trade_details['entry_datetime'].strftime('%Y-%m-%d %H:%M:%S'),
         'entry_price': trade_details['entry_price'],
+        'entry_option_symbol':trade_details['entry_option_symbol'],
+        'entry_option_price':trade_details['entry_option_price'],
         'exit_datetime': exit_datetime.strftime('%Y-%m-%d %H:%M:%S'),
         'exit_price': exit_price,
+        'exit_option_price':option_ltp,
         'quantity': quantity,
         'profit_absolute': round(profit, 2),
+        'option_profit':option_profit,
         'profit_percentage': round(profit_pct, 2),
         'trade_type': trade_details['type'],
         'exit_reason': reason
@@ -292,3 +312,95 @@ def log_trade(trade_data):
         print("✓ Trade logged to trade_log.txt")
     except Exception as e:
         print(f"Error writing to log file: {e}")
+
+def select_expiry(expiry_data, current_date=None):
+    """
+    Select an expiry date based on the following rule:
+    - Pick the nearest expiry
+    - If nearest expiry is in less than 2 days, pick the next nearest expiry
+    
+    Args:
+        expiry_data: List of dictionaries with 'date' and 'expiry' keys
+        current_date: Optional datetime object for current date (defaults to today)
+    
+    Returns:
+        Dictionary with selected expiry information
+    """
+    if current_date is None:
+        current_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Convert expiry dates to datetime objects and filter future dates
+    future_expiries = []
+    for item in expiry_data:
+        expiry_date = datetime.strptime(item['date'], '%d-%m-%Y')
+        if expiry_date >= current_date:
+            future_expiries.append({
+                'date': item['date'],
+                'expiry': item['expiry'],
+                'datetime': expiry_date
+            })
+    
+    # Sort by date
+    future_expiries.sort(key=lambda x: x['datetime'])
+    
+    if not future_expiries:
+        return None
+    
+    # Check if nearest expiry is less than 2 days away
+    nearest_expiry = future_expiries[0]
+    days_until_expiry = (nearest_expiry['datetime'] - current_date).days
+    
+    if days_until_expiry < 3 and len(future_expiries) > 1:
+        # Pick the next nearest expiry
+        selected = future_expiries[1]
+    else:
+        # Pick the nearest expiry
+        selected = future_expiries[0]
+    
+    return {
+        'date': selected['date'],
+        'expiry': selected['expiry'],
+        'days_until_expiry': (selected['datetime'] - current_date).days
+    }
+
+
+
+def get_itm_strike(current_price, strike_interval=50):
+    """
+    Get 1 strike In The Money (ITM) for Call and Put options
+    
+    Args:
+        current_price: Current price of the underlying (e.g., NIFTY)
+        strike_interval: Strike price interval (default: 50 for NIFTY)
+    
+    Returns:
+        Dictionary with ITM strikes for Call and Put
+    """
+    # Round current price to nearest strike
+    atm_strike = round(current_price / strike_interval) * strike_interval
+    
+    # For CALL: ITM is below current price (lower strike)
+    # 1 strike ITM Call = ATM - 1 strike interval
+    call_itm = atm_strike - strike_interval
+    
+    # For PUT: ITM is above current price (higher strike)
+    # 1 strike ITM Put = ATM + 1 strike interval
+    put_itm = atm_strike + strike_interval
+    
+    return {
+        'current_price': current_price,
+        'atm_strike': atm_strike,
+        'call_1_itm': call_itm,
+        'put_1_itm': put_itm
+    }
+
+def get_entry_symbol(strike,option_chain,side):
+    expiry_df = pd.DataFrame(option_chain)
+    if side=="LONG":
+        option_type="CE"
+    else:
+        option_type="PE"
+
+    entry_symbol = expiry_df[(expiry_df['strike_price']==strike) & (expiry_df['option_type']==option_type)]['symbol'].values[0]
+    ltp = expiry_df[(expiry_df['strike_price']==strike) & (expiry_df['option_type']==option_type)]['ltp'].values[0]
+    return entry_symbol,ltp
