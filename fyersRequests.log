@@ -13763,3 +13763,5 @@
 {"level":"DEBUG","location":"[get_call:144] fyersModel","message":{"Status Code":200,"API":"/quotes"},"timestamp":"2026-01-29 04:45:00,670-0500","service":"FyersAPIRequest"}
 {"level":"DEBUG","location":"[get_call:144] fyersModel","message":{"Status Code":200,"API":"/history"},"timestamp":"2026-02-01 22:46:01,574-0500","service":"FyersAPIRequest"}
 {"level":"DEBUG","location":"[get_call:144] fyersModel","message":{"Status Code":200,"API":"/quotes"},"timestamp":"2026-02-01 22:46:01,937-0500","service":"FyersAPIRequest"}
+{"level":"DEBUG","location":"[get_call:144] fyersModel","message":{"Status Code":200,"API":"/history"},"timestamp":"2026-02-02 22:46:01,633-0500","service":"FyersAPIRequest"}
+{"level":"DEBUG","location":"[get_call:144] fyersModel","message":{"Status Code":200,"API":"/quotes"},"timestamp":"2026-02-02 22:46:02,039-0500","service":"FyersAPIRequest"}
