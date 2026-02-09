@@ -141,12 +141,12 @@ def enter_trade(fyers, symbol, capital, risk_pct, trade_type, ltp, prev_high, pr
     #if response and response.get('s') == 'ok':
     entry_datetime = get_ist_time()
     entry_price = ltp
-    expiries = get_option_chain_expiries()
+    expiries = get_option_chain_expiries(fyers)
     entry_option_price=0
     entry_option_symbol=None
     if expiries:
         selected_expiry = select_expiry(expiries)['expiry']
-        option_chain = get_option_chain_expiry(selected_expiry)
+        option_chain = get_option_chain_expiry(fyers,selected_expiry)
         strikes = get_itm_strike(ltp)
         if trade_type == 'LONG':
             strike = strikes['call_1_itm']

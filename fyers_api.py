@@ -100,7 +100,7 @@ def place_order(fyers, symbol, side, quantity):
         print(f"Exception in place_order: {e}")
         return None
     
-def get_option_chain_expiries():
+def get_option_chain_expiries(fyers):
     try:
         data = {
         "symbol":"NSE:NIFTY50-INDEX",
@@ -113,7 +113,7 @@ def get_option_chain_expiries():
         print(f"Exception in return option chain expiries {e}")
         return None
     
-def get_option_chain_expiry(expiry):
+def get_option_chain_expiry(fyers,expiry):
     try:
         data = {
         "symbol":"NSE:NIFTY50-INDEX",
