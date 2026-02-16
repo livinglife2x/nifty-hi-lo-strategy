@@ -26,3 +26,21 @@ profit_percentage: 0.13
 trade_type: LONG
 exit_reason: Market Close - 3:15 PM
 ============================================================
+
+============================================================
+Trade Log Entry - 2026-02-06 15:15:00
+============================================================
+entry_datetime: 2026-02-06 09:20:44
+entry_price: 25578.45
+entry_option_symbol: None
+entry_option_price: 0
+exit_datetime: 2026-02-06 15:15:00
+exit_price: 25697.75
+exit_option_price: 0
+quantity: 1
+profit_absolute: -119.3
+option_profit: 0
+profit_percentage: -0.47
+trade_type: SHORT
+exit_reason: Market Close - 3:15 PM
+============================================================

@@ -105,7 +105,7 @@ def main():
     
     trade_taken = False
     trade_details = None
-    trade_completed = False  # New flag to track if any trade was completed today
+    #trade_completed = False  # New flag to track if any trade was completed today
     last_print_time = 0  # Track last print time to avoid spam
     
     while not is_market_closed():
@@ -121,14 +121,14 @@ def main():
             current_time = get_ist_time().strftime('%H:%M:%S')
             
             # If a trade was already completed today, just monitor until market close
-            if trade_completed:
-                # Print only every 60 seconds
-                current_timestamp = time.time()
-                if current_timestamp - last_print_time >= 60:
-                    print(f"[{current_time}] Trade already completed today. Waiting for market close...")
-                    last_print_time = current_timestamp
-                time.sleep(1)
-                continue
+            #if trade_completed:
+            #    # Print only every 60 seconds
+            #    current_timestamp = time.time()
+            #    if current_timestamp - last_print_time >= 60:
+            #        print(f"[{current_time}] Trade already completed today. Waiting for market close...")
+            #        last_print_time = current_timestamp
+            #    time.sleep(1)
+            #    continue
             
             # If no trade taken yet, check for entry
             if not trade_taken:
@@ -155,12 +155,12 @@ def main():
             else:
                 # Check stop loss
                 if check_exit_signal(ltp, trade_details['type'], prev_high, prev_low):
+                    
                     success = exit_trade(fyers, symbol, trade_details, ltp, "Stop Loss Hit")
                     if success:
                         trade_taken = False  # Mark position as closed
                         trade_details = None
-                        trade_completed = True  # Mark that a trade was completed - no more trades today
-                        print("Trade completed. No more trades today. Monitoring until market close...")
+                        print("Trade completed. Monitoring for next signal...")
                     else:
                         print("Exit failed, retrying...")
                 # Don't print every second - only print every 10 seconds or on significant price moves
