@@ -263,7 +263,7 @@ def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit",option_
         option_profit =option_ltp- trade_details['entry_option_price']
     else:
         profit = (trade_details['entry_price'] - exit_price) * quantity
-        option_profit =trade_details['entry_option_price'] - option_ltp
+        option_profit = option_ltp-trade_details['entry_option_price']
     profit_pct = (profit / (trade_details['entry_price'] * quantity)) * 100
     
     # Create log entry
