@@ -163,6 +163,13 @@ def enter_trade(fyers, symbol, capital, risk_pct, trade_type, ltp, prev_high, pr
         'stop_loss': stop_loss,
         'quantity': quantity
     }
+    response = place_order(fyers, entry_option_symbol, side, quantity)
+    if response and response.get('s') == 'ok':
+        print(f'{side} order successful')
+    else:
+        print(f"❌ Order placement failed")
+        print(response.json())
+        
     
     print(f"✓ Trade Executed Successfully")
     print(f"  Type: {trade_type}")
@@ -284,6 +291,12 @@ def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit",option_
     }
     
     log_trade(log_entry)
+    response = place_order(fyers, trade_details['entry_option_symbol'], side, quantity)
+    if response and response.get('s') == 'ok':
+        print(f'exit {side} order successful')
+    else:
+        print(f"❌  exit {side} Order placement failed")
+        print(response.json())
     
     return True  # Successfully exited
   
