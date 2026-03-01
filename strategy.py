@@ -263,7 +263,7 @@ def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit",option_
         option_profit =option_ltp- trade_details['entry_option_price']
     else:
         profit = (trade_details['entry_price'] - exit_price) * quantity
-        option_profit =trade_details['entry_option_price'] - option_ltp
+        option_profit = option_ltp-trade_details['entry_option_price']
     profit_pct = (profit / (trade_details['entry_price'] * quantity)) * 100
     
     # Create log entry
@@ -334,7 +334,8 @@ def select_expiry(expiry_data, current_date=None):
     # Convert expiry dates to datetime objects and filter future dates
     future_expiries = []
     for item in expiry_data:
-        expiry_date = datetime.strptime(item['date'], '%d-%m-%Y')
+        #expiry_date = datetime.strptime(item['date'], '%d-%m-%Y')
+        expiry_date = IST.localize(datetime.strptime(item['date'], '%d-%m-%Y'))
         if expiry_date >= current_date:
             future_expiries.append({
                 'date': item['date'],

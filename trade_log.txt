@@ -44,3 +44,57 @@ profit_percentage: -0.47
 trade_type: SHORT
 exit_reason: Market Close - 3:15 PM
 ============================================================
+
+============================================================
+Trade Log Entry - 2026-02-24 15:15:01
+============================================================
+entry_datetime: 2026-02-24 09:16:02
+entry_price: 25593.65
+entry_option_symbol: NSE:NIFTY2630225650PE
+entry_option_price: 194.95
+exit_datetime: 2026-02-24 15:15:01
+exit_price: 25420.15
+exit_option_price: 281.55
+quantity: 1
+profit_absolute: 173.5
+option_profit: 86.60000000000002
+profit_percentage: 0.68
+trade_type: SHORT
+exit_reason: Market Close - 3:15 PM
+============================================================
+
+============================================================
+Trade Log Entry - 2026-02-26 15:15:01
+============================================================
+entry_datetime: 2026-02-26 12:21:59
+entry_price: 25425.85
+entry_option_symbol: NSE:NIFTY2630225500PE
+entry_option_price: 160.1
+exit_datetime: 2026-02-26 15:15:00
+exit_price: 25486.95
+exit_option_price: 115
+quantity: 1
+profit_absolute: -61.1
+option_profit: -45.099999999999994
+profit_percentage: -0.24
+trade_type: SHORT
+exit_reason: Market Close - 3:15 PM
+============================================================
+
+============================================================
+Trade Log Entry - 2026-02-27 15:15:01
+============================================================
+entry_datetime: 2026-02-27 09:16:02
+entry_price: 25398.35
+entry_option_symbol: NSE:NIFTY2630225450PE
+entry_option_price: 131.85
+exit_datetime: 2026-02-27 15:15:01
+exit_price: 25167
+exit_option_price: 280
+quantity: 1
+profit_absolute: 231.35
+option_profit: 148.15
+profit_percentage: 0.91
+trade_type: SHORT
+exit_reason: Market Close - 3:15 PM
+============================================================
