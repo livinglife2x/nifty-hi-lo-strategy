@@ -130,8 +130,8 @@ def enter_trade(fyers, symbol, capital, risk_pct, trade_type, ltp, prev_high, pr
     # Calculate quantity dynamically
     quantity = 1
     
-    side = "BUY" if trade_type == "LONG" else "SELL"
-    
+    #side = "BUY" if trade_type == "LONG" else "SELL"
+    side = "BUY"
     print(f"\n{'='*60}")
     print(f"🔔 ENTRY SIGNAL: {trade_type}")
     print(f"{'='*60}")
@@ -249,7 +249,8 @@ def exit_trade(fyers, symbol, trade_details, ltp, reason="Stop Loss Hit",option_
         print("⚠️  No active position to exit")
         return False
     
-    side = "SELL" if trade_details['type'] == "LONG" else "BUY"
+    #side = "SELL" if trade_details['type'] == "LONG" else "BUY"
+    side="SELL"
     quantity = trade_details['quantity']
     exit_datetime = get_ist_time()
     
