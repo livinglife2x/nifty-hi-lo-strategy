@@ -128,7 +128,7 @@ def enter_trade(fyers, symbol, capital, risk_pct, trade_type, ltp, prev_high, pr
     stop_loss = prev_low if trade_type == 'LONG' else prev_high
     
     # Calculate quantity dynamically
-    quantity = 1
+    quantity = 65
     
     #side = "BUY" if trade_type == "LONG" else "SELL"
     side = "BUY"
