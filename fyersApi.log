@@ -5794,3 +5794,4 @@
 {"level":"ERROR","location":"[post_call:93] fyersModel","message":{"API":"/orders/sync","Error":{"code":-50,"message":"1 not a multiple of minimum lot size 65","s":"error"}},"timestamp":"2026-03-11 05:44:55,909-0400","service":"FyersAPI"}
 {"level":"ERROR","location":"[post_call:93] fyersModel","message":{"API":"/orders/sync","Error":{"code":-50,"message":"1 not a multiple of minimum lot size 65","s":"error"}},"timestamp":"2026-03-11 05:44:58,650-0400","service":"FyersAPI"}
 {"level":"ERROR","location":"[post_call:93] fyersModel","message":{"API":"/orders/sync","Error":{"code":-50,"message":"1 not a multiple of minimum lot size 65","s":"error"}},"timestamp":"2026-03-11 05:45:01,211-0400","service":"FyersAPI"}
+{"level":"ERROR","location":"[get_call:150] fyersModel","message":{"API":"/history","Error":{"code":-16,"message":"Could not authenticate the user","s":"error"}},"timestamp":"2026-03-11 23:46:01,426-0400","service":"FyersAPI"}
