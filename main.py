@@ -63,6 +63,11 @@ def main():
     print(f"\nTrading Symbol: {symbol}")
     print(f"Capital: ₹{capital}")
     print(f"Risk Per Trade: {risk_pct}%")
+
+    test_data = get_previous_day_data(fyers, symbol)
+    if not test_data:
+        print("something wrong with api token")
+
     print(f"\nWaiting for 9:15 AM IST...\n")
     
     # Wait until 9:15 AM IST
